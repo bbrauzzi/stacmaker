@@ -29,7 +29,7 @@ $graph:
   id: stacmaker-clt
   requirements:
     DockerRequirement:
-      dockerPull: grycap/cowsay
+      dockerPull: python:3.11
     InitialWorkDirRequirement:
       listing:
       - entryname: catalog.json
@@ -128,14 +128,34 @@ $graph:
               },
               "links": []
             }
-      - entryname: run.sh
+      - entryname: run.py
         entry: |-
-          #!/bin/bash
-          mkdir myMockStacItem
-          cp myMockStacItem.json myMockStacItem/
-          /usr/games/cowsay $(inputs.message) > myMockStacItem/hello.txt
-          cat myMockStacItem/hello.txt
-          sleep 5
+          #!/usr/bin/env python3
+          import os
+          import subprocess
+          import shutil
+          import sys
+          import time
+
+          # Create a directory
+          os.makedirs("myMockStacItem", exist_ok=True)
+
+          # Copy a file to the directory using shutil
+          shutil.copy("myMockStacItem.json", "myMockStacItem/")
+
+          
+          output_text = sys.argv[1]
+          
+          # Write the output to a file
+          with open("myMockStacItem/hello.txt", "w") as file:
+              file.write(output_text)
+
+          # Print the stderr output
+          sys.stderr.write(output_text)
+
+          # sleep for 4 seconds
+          time.sleep(4)
+
     InlineJavascriptRequirement: {}
     ResourceRequirement:
       coresMin: 1
@@ -153,11 +173,9 @@ $graph:
       outputBinding:
         glob: .
 
-  stderr: std.out
-
-  baseCommand:
-  - /bin/bash
-  - run.sh
+  baseCommand: [python3]
+  arguments:
+  - run.py
 $namespaces:
   s: https://schema.org/
 cwlVersion: v1.0
